@@ -1,0 +1,1 @@
+This is a assignment for a job interview.
