@@ -1,6 +1,6 @@
 const transactionSchema = require('./transaction.model');
-const _ = require('lodash');
 const uuidv4 = require('uuid/v4');
+const _ = require('lodash');
 
 const db = require('../../config/db.conf');
 
