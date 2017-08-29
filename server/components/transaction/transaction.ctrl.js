@@ -12,10 +12,10 @@ module.exports = class transactionController {
             .catch(err => res.status(err.status).send(err.message));
     }
 
-    static getByTuidOrRefTuid(req, res) {
+    static getByTuid(req, res) {
         let _tuid = req.query.tuid;
         transactionDAO
-            .getByTuidOrRefTuid(_tuid)
+            .getByTuid(_tuid)
             .then(result => res.status(result.status).send(result.message))
             .catch(err => res.status(err.status).send(err.message));
     }

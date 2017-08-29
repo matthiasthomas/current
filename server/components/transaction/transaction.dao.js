@@ -60,60 +60,35 @@ transactionDAO.createNew = (transaction, extension) => {
     });
 }
 
+transactionDAO.getBy = (property, value) => {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM trx WHERE ' + property + '=?';
+        db.client.execute(query, [value], { prepare: true })
+            .then(result => {
+                return resolve({
+                    status: 200,
+                    message: result.rows
+                })
+            })
+            .catch(err => {
+                return reject({
+                    status: 500,
+                    message: err
+                });
+            });
+    });
+}
+
 transactionDAO.getByTuid = (tuid) => {
     return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM trx WHERE tuid=?`;
-        db.client.execute(query, [tuid], { prepare: true })
-            .then(result => {
-                return resolve({
-                    status: 200,
-                    message: result.rows
-                })
-            })
-            .catch(err => {
-                return reject({
-                    status: 500,
-                    message: err
-                });
-            });
-    });
-}
-
-transactionDAO.getByRefTuid = (tuid) => {
-    return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM trx WHERE ref_tuid=?`;
-        db.client.execute(query, [tuid], { prepare: true })
-            .then(result => {
-                return resolve({
-                    status: 200,
-                    message: result.rows
-                })
-            })
-            .catch(err => {
-                return reject({
-                    status: 500,
-                    message: err
-                });
-            });
-    });
-}
-
-transactionDAO.getByTuidOrRefTuid = (tuid) => {
-    return new Promise((resolve, reject) => {
         Promise.all([
-            transactionDAO.getByTuid(tuid),
-            transactionDAO.getByRefTuid(tuid)
+            transactionDAO.getBy('tuid', tuid),
+            transactionDAO.getBy('ref_tuid', tuid)
         ]).then((val_array) => {
-            let result = val_array[0].message.concat(val_array[1].message);
-            result = removeDuplicatesBy(result, 'id');
-            // Remove id key
-            result.map(r => {
-                delete r.id;
-                return r;
-            });
+            let result = prepareDataFromArrays(val_array);
             // Sort by timestamp asc
             result.sort((a, b) => {
-                return parseInt(a.timestamp - parseInt(b.timestamp));
+                return a.timestamp - b.timestamp;
             });
             return resolve({
                 status: 200,
@@ -128,71 +103,16 @@ transactionDAO.getByTuidOrRefTuid = (tuid) => {
     });
 }
 
-function removeDuplicatesBy(originalArray, objKey) {
-    var trimmedArray = [];
-    var values = [];
-    var value;
-    for (var i = 0; i < originalArray.length; i++) {
-        value = originalArray[i][objKey];
-        if (values.indexOf(value) === -1) {
-            trimmedArray.push(originalArray[i]);
-            values.push(value);
-        }
-    }
-    return trimmedArray;
-}
-
-transactionDAO.getBySource = (wuid) => {
-    return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM trx WHERE source=?`;
-        db.client.execute(query, [wuid], { prepare: true })
-            .then(result => {
-                return resolve({
-                    status: 200,
-                    message: result.rows
-                })
-            })
-            .catch(err => {
-                return reject({
-                    status: 500,
-                    message: err
-                });
-            });
-    });
-}
-
-transactionDAO.getByDestination = (wuid) => {
-    return new Promise((resolve, reject) => {
-        const query = `SELECT * FROM trx WHERE destination=?`;
-        db.client.execute(query, [wuid], { prepare: true })
-            .then(result => {
-                return resolve({
-                    status: 200,
-                    message: result.rows
-                })
-            })
-            .catch(err => {
-                return reject({
-                    status: 500,
-                    message: err
-                });
-            });
-    });
-}
-
 transactionDAO.getByWuid = (wuid) => {
     return new Promise((resolve, reject) => {
         Promise.all([
-            transactionDAO.getBySource(wuid),
-            transactionDAO.getByDestination(wuid)
+            transactionDAO.getBy('source', wuid),
+            transactionDAO.getBy('destination', wuid)
         ]).then(val_array => {
-            let result = val_array[0].message.concat(val_array[1].message);
-            result = removeDuplicatesBy(result, 'id');
-            // Remove id key
-            result.map(el => { delete el.id; return el; });
+            let result = prepareDataFromArrays(val_array);
             // Sort by asc timestamp first
             result.sort((a, b) => {
-                return parseInt(a.timestamp - parseInt(b.timestamp));
+                return a.timestamp - b.timestamp;
             });
             // group by tuid
             result = groupBy(result, function (item) {
@@ -200,7 +120,7 @@ transactionDAO.getByWuid = (wuid) => {
             });
             // sort by desc timestamp of first el of table
             result.sort((a, b) => {
-                return parseInt(b[0].timestamp - parseInt(a[0].timestamp));
+                return b[0].timestamp - a[0].timestamp;
             });
             return resolve({
                 status: 200,
@@ -215,7 +135,29 @@ transactionDAO.getByWuid = (wuid) => {
     });
 }
 
-function groupBy(array, f) {
+prepareDataFromArrays = (arrays) => {
+    // concatenate arrays and remove duplicates in one pass
+    let result = [];
+    let check_set = new Set();
+    for (let i = 0; i < arrays.length; i++) {
+        for (let j = 0; j < arrays[i].message.length; j++) {
+            if (!check_set.has(arrays[i].message[j].id.toString())) {
+                // Format the data
+                arrays[i].message[j].amt = +arrays[i].message[j].amt;
+                arrays[i].message[j].timestamp = +arrays[i].message[j].timestamp;
+                // add key to set
+                check_set.add(arrays[i].message[j].id.toString());
+                // remove id key
+                delete arrays[i].message[j].id;
+                // Add the data to our array
+                result.push(arrays[i].message[j]);
+            }
+        }
+    }
+    return result;
+}
+
+groupBy = (array, f) => {
     var groups = {};
     array.forEach(function (o) {
         var group = JSON.stringify(f(o));
