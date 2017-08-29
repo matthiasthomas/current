@@ -6,7 +6,7 @@ CREATE TABLE current.trx (
     tuid text,
     action text,
     actor text,
-    amt float,
+    amt decimal,
     cuid0 text,
     cuid1 text,
     destination text,
