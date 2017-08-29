@@ -28,7 +28,8 @@ transactionDAO.createNew = (transaction, extension) => {
             VALUES 
             (:sym, :action, :amt, :cuid0, :cuid1, :actor, :source, 
             :destination, :note, :tuid, :external_id, 
-            :timestamp, :ref_tuid)`;
+            :timestamp, :ref_tuid)
+            IF NOT EXISTS`;
         // Parameters by marker name
         db.client.execute(query, transaction, { prepare: true })
             .then(result => {
