@@ -2,7 +2,8 @@
 CREATE KEYSPACE current WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '3'}  AND durable_writes = true;
 
 CREATE TABLE current.trx (
-    tuid text PRIMARY KEY,
+    id uuid PRIMARY KEY,
+    tuid text,
     action text,
     actor text,
     amt float,
@@ -32,4 +33,4 @@ CREATE TABLE current.trx (
 CREATE INDEX trx_source_idx ON current.trx (source);
 CREATE INDEX trx_ref_tuid_idx ON current.trx (ref_tuid);
 CREATE INDEX trx_destination_idx ON current.trx (destination);
-
+CREATE INDEX trx_tuid_idx ON current.trx (tuid);

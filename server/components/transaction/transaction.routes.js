@@ -7,7 +7,7 @@ router.route('/')
     .post(transaction_ctrl.createNew)
     .get((req, res) => {
         if (req.query.hasOwnProperty('tuid')) {
-            transaction_ctrl.getByTuid(req, res);
+            transaction_ctrl.getByTuidOrRefTuid(req, res);
         } else if (req.query.hasOwnProperty('wuid')) {
             transaction_ctrl.getByWuid(req, res);
         } else {

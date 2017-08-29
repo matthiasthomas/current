@@ -1,6 +1,7 @@
 const transactionSchema = {
     "type": "object",
     "properties": {
+        "id": { "type": "string", "format": "uuid" },
         "sym": { "type": "string", "minLength": 3, "maxLength": 3 },
         "action": { "type": "string" },
         "amt": { "type": "number" },
@@ -15,7 +16,7 @@ const transactionSchema = {
         "timestamp": { "type": "number" },
         "ref_tuid": { "type": "string" }
     },
-    "required": ["sym", "action", "amt", "cuid0", "tuid", "timestamp"]
+    "required": ["id", "sym", "action", "amt", "cuid0", "tuid", "timestamp"]
 };
 
 module.exports = transactionSchema;
