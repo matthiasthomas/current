@@ -1,0 +1,30 @@
+echo "deb http://www.apache.org/dist/cassandra/debian 36x main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
+curl https://www.apache.org/dist/cassandra/KEYS | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install cassandra
+sudo apt-get install python-pip
+pip install cassandra-driver
+export CQLSH_NO_BUNDLED=true
+
+# stop cassandra and remove previous conf
+sudo service cassandra stop
+sudo rm -rf /var/lib/cassandra/data/system/*
+
+sudo nano /etc/cassandra/cassandra.yaml
+# update lines 
+# seeds: "ip_address_seed1"],[ip_address_seed2]...etc" => which servers are the seeds of the environnement
+# cluster_name: "CASS-1"
+# listen_address: [ip_address] => which address will listen for other nodes
+# start_rpc: true => open to client connection
+# endpoint_snitch: GossipingPropertyFileSnitch => perfect for production environnement
+# rpc_address: [ip_address] => which address will listen to clients connections
+# auto_bootstrap: false (for seeds) true (for non-seeds)
+
+# restart service once it's done
+sudo service cassandra start
+
+# To test service and see nodes
+nodetool status
+
+# To access the cql client on any machine
+sudo cqlsh [ip_address]
