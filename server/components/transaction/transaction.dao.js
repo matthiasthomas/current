@@ -23,7 +23,7 @@ transactionDAO.createNew = (transaction, extension) => {
         const valid = validateTransaction(transaction);
         if (!valid) {
             // Implement real logger for real life app
-            console.log(validateTransaction.errors);
+           // console.log(validateTransaction.errors);
             return reject({
                 status: 400,
                 message: 'Missing field in transaction object.'
@@ -44,7 +44,7 @@ transactionDAO.createNew = (transaction, extension) => {
                 // Cassandra doesn't read before executing a write 
                 // So two inserts on the same primary key will actually update the row
                 // And return a success
-                console.log(result);
+              //  console.log(result);
                 delete transaction.id;
                 return resolve({
                     status: 201,
